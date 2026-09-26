@@ -1,0 +1,31 @@
+1. InputStream và Reader khác nhau như thế nào? Khi nào dùng mỗi loại
+InputStream thao tác với dữ liệu dạng byte thô (8-bit). Dùng cho các tệp nhị phân như hình ảnh, âm thanh, video, tệp nén (.zip), hoặc PDF.
+Reader thao tác với dữ liệu dạng ký tự (character - 16-bit). Dùng để xử lý các tệp văn bản (TXT, CSV, JSON, XML) giúp bảo toàn chính xác phông chữ và bộ mã.
+
+2. Giá trị -1 của read() hoặc read(buffer) có ý nghĩa gì?
+Giá trị -1 là tín hiệu thông báo luồng dữ liệu đã được đọc đến điểm kết thúc (EOF - End Of File), không còn dữ liệu nào để đọc tiếp.
+
+3. Vì sao available() không nên dùng để xác định đã đọc hết luồng?
+Phương thức available() chỉ trả về số lượng byte ước tính có thể đọc ngay lập tức mà không bị chặn (block), chứ không đại diện cho tổng kích thước của toàn bộ tệp hay luồng. Dùng nó để điều khiển vòng lặp có thể gây mất mát dữ liệu hoặc dừng vòng lặp sớm.
+
+4. InputStreamReader có vai trò gì trong chuỗi xử lý văn bản?
+Nó đóng vai trò là cầu nối (bridge) chuyển đổi luồng byte thành luồng ký tự. Nó sẽ nhận các byte thô từ InputStream và giải mã chúng thành các ký tự dựa trên một bộ mã (Charset) được chỉ định (như UTF-8).
+
+5. Buffer cải thiện hiệu năng đọc/ghi như thế nào?
+Thay vì truy xuất ổ cứng/mạng cho từng byte hoặc từng ký tự đơn lẻ (rất tốn thời gian), Buffer tạo ra một bộ nhớ đệm tạm thời. Chương trình sẽ đọc/ghi một khối dữ liệu lớn vào bộ đệm trong một lần, giảm thiểu tối đa số lần tương tác vật lý với thiết bị lưu trữ.
+
+6. Vì sao phải chỉ rõ UTF-8 khi xử lý dữ liệu tiếng Việt?
+Tiếng Việt chứa các ký tự có dấu (multi-byte characters). Nếu không chỉ định rõ StandardCharsets.UTF_8, Java có thể sử dụng bộ mã mặc định của hệ điều hành (ví dụ: Windows-1252 hoặc US-ASCII), dẫn đến việc giải mã sai và biến các chữ có dấu thành ký tự rác (?), lỗi font.
+
+7. try-with-resources giải quyết vấn đề gì?
+Cú pháp này đảm bảo các tài nguyên (luồng file, kết nối mạng) được tự động đóng (close()) ngay khi kết thúc khối lệnh try, kể cả khi có lỗi (Exception) xảy ra. Việc này giúp tránh rò rỉ bộ nhớ (memory leak) và lỗi tệp bị khóa do chưa đóng luồng.
+
+8. flush() khác close() như thế nào?
+flush(): Ép đẩy toàn bộ dữ liệu đang còn kẹt trong bộ đệm (buffer) ghi thẳng vào tệp/luồng đích ngay lập tức, nhưng không đóng luồng.
+close(): Tự động gọi flush() để ghi nốt dữ liệu, sau đó đóng hoàn toàn và giải phóng luồng. Luồng đã close thì không thể đọc/ghi tiếp.
+
+9. Vì sao tệp ảnh phải được xử lý bằng byte stream thay vì Reader/Writer?
+Tệp ảnh chứa dữ liệu nhị phân (binary). Nếu dùng Reader/Writer, các lớp này sẽ cố gắng giải mã các byte nhị phân đó thành các ký tự văn bản. Quá trình chuyển đổi sai lệch này sẽ làm hỏng cấu trúc tệp, khiến tệp ảnh mới sinh ra bị lỗi và không thể mở được.
+
+10. Nếu read(buffer) trả về 120, vì sao chỉ được ghi 120 byte từ buffer?
+Khi đọc đến phần cuối của tệp, lượng dữ liệu còn lại (ở đây là 120 byte) có thể nhỏ hơn tổng kích thước của mảng buffer (ví dụ mảng chứa được 8192 byte). Nếu bạn ghi toàn bộ độ dài của buffer, chương trình sẽ ghi cả những byte rác (dữ liệu cũ từ lần đọc trước hoặc byte 0) vào tệp mới. Do đó, phải dùng write(buffer, 0, bytesRead) để chỉ ghi chính xác số byte vừa thực đọc.
